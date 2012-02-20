@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>Note Storage</title>
+		<style type="text/css" media="screen">@import "jqtouch/jqtouch.min.css";</style>
+	  <style type="text/css" media="screen">@import "themes/apple/theme.min.css";</style>
+	  <script src="jqtouch/jquery.1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+	  <script src="jqtouch/jqtouch.min.js" type="application/x-javascript" charset="utf-8"></script>
+	  <script type="text/javascript" charset="utf-8">
+			var jQT = $.jQTouch({
+				 icon: 'icon.jpeg',
+				 startupScreen: 'startup.png'
+			});
+			$(function(){
+			
+				function linkify(inputText) {
+					//adapted from http://www.zparacha.com/phone_number_regex/ and 
+					//http://stackoverflow.com/questions/37684/replace-url-with-html-links-javascript
+					var replaceText, replacePattern1, replacePattern2, replacePattern3;
+					//URLs starting with http://, https://, or ftp://
+					replacePattern1 = /(\b(https?|ftp):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gim;
+					replacedText = inputText.replace(replacePattern1, '<a href="$1">$1</a>');
+					//URLs starting with www. (without // before it, or it'd re-link the ones done above)
+					replacePattern2 = /(^|[^\/])(www\.[\S]+(\b|$))/gim;
+					replacedText = replacedText.replace(replacePattern2, '$1<a href="http://$2">$2</a>');
+					//Change email addresses to mailto:: links
+					replacePattern3 = /(\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,6})/gim;
+					replacedText = replacedText.replace(replacePattern3, '<a href="mailto:$1">$1</a>');
+					//Change telephone numbers to tel:###-###-### links
+					replacePattern4 = /(^\(?(\d{3})\)?[- ]?(\d{3})[- ]?(\d{4})$)/gim;
+					replacedText = replacedText.replace(replacePattern4, '<a href="tel:$1">$1</a>');
+					return replacedText;
+				}
+
+				function savenote(){
+				var note = $('#note').val();
+					 if (note.length > 0){
+				 		 localStorage[new Date().getTime()] = note;
+  						 jQT.goBack();
+  						 $('#note').val('');
+  						 update_notelist();
+					 }
+					return false;
+				}
+				
+				function update_notelist(){
+				 	$('.noteList').empty();
+				 	for(key in localStorage){
+				 		$('.noteList').append('<li class="arrow"><a class="noteListNote" key="'+ key + '" href="#noteViewSpace">' + localStorage[key] + '</a></li>');
+				 	}
+				 	$('.noteListNote').click(function(){
+				 	var key = $(this).attr('key');
+				 	console.log(key);
+					shownote(key);
+				});
+				}
+				
+				function shownote(key){
+					$('#noteViewSpace').empty();
+					$('#noteViewSpace').append('<div class="toolbar"><h1>' + localStorage[key] + '</h1><a class="back" id="backandsave" href="#">Notes</a><a style="display: none" class="button" id="delete" href="#">Delete</a><a class="button" id="edit" href="#">Edit</a></div><ul class="rounded"><li><form><textarea style="display: none" id="currentNote"></textarea></form><p id="currentNoteDisplay"></p></li></ul>');
+					$('#currentNote').val(localStorage[key]);
+					var x = linkify(localStorage[key]);
+					console.log(x);
+					$('#currentNoteDisplay').append(x);
+					$('#backandsave').click(function(){
+						update_currentnote(key);
+						update_notelist();
+					});
+					$('#delete').click(function(){
+						deletenote(key);
+						update_notelist();
+						jQT.goBack();
+					});
+					$('#edit').click(function(){
+						$('#edit').toggle();
+						$('#delete').toggle();
+						$('#currentNote').toggle();
+						$('#currentNoteDisplay').toggle();
+					});
+				}
+				
+				function deletenote(key){
+					localStorage.removeItem(key);
+				}
+				
+				function update_currentnote(key){
+					localStorage[key] = $('#currentNote').val();
+				}
+				
+				update_notelist();
+				
+				$('#add form').submit(savenote);
+				$('#add .whiteButton').click(savenote);
+			});
+		</script>
+	</head>
+	<body>
+		<div id="home" class="edgetoedge">
+			<div class="toolbar">
+				<h1>Notes</h1>
+				<a class="button slideup" id="infoButton" href="#add">New</a>
+			</div>
+			<ul class="noteList">
+
+			
+			</ul>
+		</div>
+		<div id="add" class="">
+				<form>
+					 <div class="toolbar">
+						  <h1>New Note</h1>
+							<a class="back" href="#">Notes</a>
+						  </div>
+					 <ul class="rounded">
+						  <li><textarea id="note" cols="100" rows="6" placeholder="Enter your note..."></textarea></li>
+					 </ul>
+					 <a href="#" class="whiteButton" style="margin: 10px">Add</a>
+				</form>
+		  </div>
+		  <div class="noteViewSpace" id="noteViewSpace">
+		  </div>
+	</body>
+</html>

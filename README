@@ -1,0 +1,6 @@
+Notes-Webapp
+
+A basic app for storing short text notes. 
+Built with jQTouch and HTML 5 and uses Local Storage.
+
+With an iPhone it can be saved to the homescreen.
